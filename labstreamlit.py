@@ -10,7 +10,7 @@ st.set_page_config(layout="wide", page_title="Gráfico de Médias Móveis", page
 
 
 # Auto-refresh leve para verificar se o arquivo original foi alterado
-st_autorefresh(interval=60_000, key="refresh_monitor")
+st_autorefresh(interval=600_000, key="refresh_monitor")
 
 # Caminhos dos arquivos
 caminho_origem = r"\\teste\\Resultados Planta.xlsx"
