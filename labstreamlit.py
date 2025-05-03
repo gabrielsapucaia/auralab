@@ -36,7 +36,7 @@ data_min = data_max - pd.Timedelta(days=30)
 inicio, fim = st.sidebar.date_input("Período:", [data_min.date(), data_max.date()])
 
 # Média móvel
-periodo_movel = st.sidebar.slider("Período da Média Móvel:", 1, 50, 6, 1)
+periodo_movel = st.sidebar.slider("Período da Média Móvel:", 1, 20, 6, 1)
 
 # Gráfico único ou separado
 grafico_unico = st.sidebar.checkbox("Exibir em um único gráfico", value=True)
