@@ -1,16 +1,40 @@
-import streamlit as st  
-import pandas as pd  
-import plotly.graph_objects as go  
-  
-# === Configurações iniciais ===  
-st.set_page_config(layout="wide", page_title="Gráfico de Médias Móveis", page_icon="📈")  
-st.title("Visualizador de Séries Temporais - Médias Móveis")  
-  
+import streamlit as st   
+import pandas as pd   
+import plotly.graph_objects as go   
+import hashlib
+import requests
+
+# === Configurações iniciais ===   
+st.set_page_config(layout="wide", page_title="Gráfico de Médias Móveis", page_icon="📈")   
+st.title("Visualizador de Séries Temporais - Médias Móveis")   
+   
 # === URL pública do Parquet no Azure ===
 URL_PARQUET = "https://auraprodstorage.blob.core.windows.net/public-parquet/consolidado.parquet"
 
-# === Função de carregamento com cache ===
-@st.cache_data
+# === Botão na sidebar para recarregar dados manualmente ===
+if st.sidebar.button("🔁 Recarregar Dados"):
+    st.cache_data.clear()
+    st.session_state.hash_parquet = None
+    st.toast("📦 Dados recarregados manualmente!")
+
+# === Verificar alteração do conteúdo do Parquet pela hash ===
+def get_remote_hash(url):
+    response = requests.get(url)
+    if response.status_code != 200:
+        return None
+    return hashlib.md5(response.content).hexdigest()
+
+# Calcular hash e comparar com a anterior
+novo_hash = get_remote_hash(URL_PARQUET)
+hash_antigo = st.session_state.get("hash_parquet")
+
+if novo_hash and novo_hash != hash_antigo:
+    st.cache_data.clear()
+    st.session_state.hash_parquet = novo_hash
+    st.toast("🆕 Novo conteúdo detectado e carregado!")
+
+# === Função de carregamento com cache com TTL de 10 min ===
+@st.cache_data(ttl=600)
 def carregar_dados():
     df = pd.read_parquet(URL_PARQUET, engine="pyarrow")
     df["DataHoraReal"] = pd.to_datetime(df["DataHoraReal"])
