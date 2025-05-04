@@ -124,13 +124,13 @@ df_filtrado["MediaMovel"] = df_filtrado.groupby("Fonte")["Valor"].transform(
 
 # === ORDEM MANUAL DOS GRÁFICOS ===
 ordem_manual = [
-    "BAR_Au_Liq",
-    "LIX_Au_Liq",
-    "TQ01_Au_Liq",
-    "TQ02_Au_Liq",
-    "TQ06_Au_Liq",
-    "TQ07_Au_Liq",
-    "REJ_Au_Liq"
+    "BAR_Au_L",
+    "LIX_Au_L",
+    "TQ01_Au_L",
+    "TQ02_Au_L",
+    "TQ06_Au_L",
+    "TQ07_Au_L",
+    "REJ_Au_L"
 ]
 
 # Reordenar fontes selecionadas de acordo com a ordem manual
