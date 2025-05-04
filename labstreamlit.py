@@ -1,13 +1,13 @@
-import streamlit as st   
-import pandas as pd   
-import plotly.graph_objects as go   
-import hashlib
-import requests
-
-# === Configurações iniciais ===   
-st.set_page_config(layout="wide", page_title="Gráfico de Médias Móveis", page_icon="📈")   
-st.title("Visualizador de Séries Temporais - Médias Móveis")   
-   
+import streamlit as st    
+import pandas as pd    
+import plotly.graph_objects as go    
+import hashlib 
+import requests 
+ 
+# === Configurações iniciais ===    
+st.set_page_config(layout="wide", page_title="Gráfico de Médias Móveis", page_icon="📈")    
+st.title("Visualizador de Séries Temporais - Médias Móveis")    
+    
 # === URL pública do Parquet no Azure ===
 URL_PARQUET = "https://auraprodstorage.blob.core.windows.net/public-parquet/consolidado.parquet"
 
@@ -43,6 +43,20 @@ def carregar_dados():
 # === Carregar todos os dados ===
 df = carregar_dados()
 
+# === ORDEM MANUAL DOS GRÁFICOS ===
+ordem_manual = [
+    "BAR_Au_L",
+    "LIX_Au_L",
+    "TQ01_Au_L",
+    "TQ02_Au_L",
+    "TQ06_Au_L",
+    "TQ07_Au_L",
+    "REJ_Au_L"
+]
+
+# Filtrar apenas dados da ordem manual
+df = df[df["Fonte"].isin(ordem_manual)]
+
 # === Obter intervalo total e definir últimos 30 dias como padrão ===
 data_max = df["DataHoraReal"].max()
 data_min_total = df["DataHoraReal"].min()
@@ -50,7 +64,7 @@ data_min_default = data_max - pd.Timedelta(days=30)
 
 # === Inicializar session_state se necessário ===
 if "fontes" not in st.session_state:
-    st.session_state.fontes = sorted(df["Fonte"].unique())
+    st.session_state.fontes = ordem_manual
 if "periodo" not in st.session_state:
     st.session_state.periodo = [data_min_default.date(), data_max.date()]
 if "periodo_movel" not in st.session_state:
@@ -63,16 +77,17 @@ st.sidebar.header("Configurações")
 
 # Botão de reset
 if st.sidebar.button("🔄 Resetar Filtros"):
-    st.session_state.fontes = sorted(df["Fonte"].unique())
+    st.session_state.fontes = ordem_manual
     st.session_state.periodo = [data_min_default.date(), data_max.date()]
     st.session_state.periodo_movel = 6
     st.session_state.grafico_unico = True
 
-# Widgets com valores controlados por session_state
+# Multiselect limitado à ordem manual
+fontes_disponiveis = [f for f in ordem_manual if f in df["Fonte"].unique()]
 fontes_selecionadas = st.sidebar.multiselect(
-    "Selecione as fontes:",
-    options=sorted(df["Fonte"].unique()),
-    default=st.session_state.fontes,
+    "Selecione as fontes (apenas ordem manual):",
+    options=fontes_disponiveis,
+    default=fontes_disponiveis,
     key="fontes"
 )
 
@@ -122,21 +137,10 @@ df_filtrado["MediaMovel"] = df_filtrado.groupby("Fonte")["Valor"].transform(
     lambda x: x.rolling(window=periodo_movel, min_periods=1).mean()
 )
 
-# === ORDEM MANUAL DOS GRÁFICOS ===
-ordem_manual = [
-    "BAR_Au_L",
-    "LIX_Au_L",
-    "TQ01_Au_L",
-    "TQ02_Au_L",
-    "TQ06_Au_L",
-    "TQ07_Au_L",
-    "REJ_Au_L"
-]
-
 # Reordenar fontes selecionadas de acordo com a ordem manual
 fontes_selecionadas = sorted(
     fontes_selecionadas,
-    key=lambda f: ordem_manual.index(f) if f in ordem_manual else len(ordem_manual)
+    key=lambda f: ordem_manual.index(f)
 )
 
 # === Exibir gráfico ===
